@@ -1,4 +1,5 @@
 import os
+import shutil
 
 
 # get all extentions of files that this directory have
@@ -14,15 +15,30 @@ def collect_extentions() -> set:
     return extentions
 
 
-def make_directory(ext: set) -> set:
-    # make directories of extention and ready for move files
+def make_directory(ext: str) -> os.path:
+    # make directory of extention and ready for move files
     current_path = os.getcwd()
-    directory_path = set()
+    try:  # if directory exist
+        path = os.path.join(current_path, ext)
+        os.mkdir(path)
+        return path
+    except OSError as error:
+        print(error)
+
+
+def move_file(ext: set) -> str:
+    # move all same file to a type directory
     for item in ext:
-        try:  # if directory exist
-            path = os.path.join(current_path, item)
-            os.mkdir(path)
-            directory_path.add(path)
-        except OSError as error:
-            print(error)
-    return directory_path
+        destination_path = make_directory(item)
+        for file in os.listdir():
+            if file.endswith(".%s" % item) and file != 'main.py':  # for not move script
+                current_path = os.getcwd()
+                shutil.move(os.path.join(current_path, file),
+                            os.path.join(destination_path, file))
+        yield 'Move .%s files done successfully' % item
+
+
+if __name__ == '__main__':
+    extentions = collect_extentions()
+    for operation in move_file(extentions):
+        print(operation)
